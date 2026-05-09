@@ -1,5 +1,5 @@
 import { addDays, getDateKey } from './date'
-import { calculateOccupancy } from './occupancy'
+import { buildOccupancyMap } from './occupancy'
 
 const CALENDAR_ROWS = 6
 const DAYS_PER_WEEK = 7
@@ -15,8 +15,11 @@ export function getCalendarDates(year, month) {
 }
 
 export function generateCalendarGrid(year, month, bookings = []) {
-  return getCalendarDates(year, month).map((date) => {
-    const occupancy = calculateOccupancy(bookings, date)
+  const dates = getCalendarDates(year, month)
+  const occupancyMap = buildOccupancyMap(bookings, dates)
+
+  return dates.map((date) => {
+    const occupancy = occupancyMap[getDateKey(date)]
 
     return {
       id: getDateKey(date),
