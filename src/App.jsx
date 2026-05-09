@@ -7,12 +7,20 @@ import { StatsStrip } from './components/stats/StatsStrip'
 import { useBookings } from './hooks/useBookings'
 import { generateCalendarGrid } from './utils/calendar'
 import { calculateDashboardStats, isBookingActive } from './utils/occupancy'
+import {
+  doesBookingOverlapRange,
+  isDateInRange,
+  sortDateRange,
+} from './utils/selection'
 
 const initialCalendarDate = new Date(2026, 0, 1)
 
 function App() {
   const { bookings, loading, error } = useBookings()
   const [currentDate, setCurrentDate] = useState(initialCalendarDate)
+  const [selectionStart, setSelectionStart] = useState(null)
+  const [selectionEnd, setSelectionEnd] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   const calendarCells = useMemo(
     () => generateCalendarGrid(
@@ -33,6 +41,21 @@ function App() {
     [bookings, calendarCells],
   )
 
+  const selectedRange = useMemo(
+    () => sortDateRange(selectionStart, selectionEnd),
+    [selectionStart, selectionEnd],
+  )
+
+  const sidebarBookings = useMemo(() => {
+    if (!selectedRange.start || !selectedRange.end) {
+      return activeBookings.slice(0, 12)
+    }
+
+    return activeBookings.filter((booking) =>
+      doesBookingOverlapRange(booking, selectedRange.start, selectedRange.end),
+    )
+  }, [activeBookings, selectedRange])
+
   function goToNextMonth() {
     setCurrentDate((date) => new Date(date.getFullYear(), date.getMonth() + 1, 1))
   }
@@ -43,6 +66,26 @@ function App() {
 
   function goToToday() {
     setCurrentDate(new Date())
+  }
+
+  function startSelection(date) {
+    setSelectionStart(date)
+    setSelectionEnd(date)
+    setIsDragging(true)
+  }
+
+  function moveSelection(date) {
+    if (isDragging) {
+      setSelectionEnd(date)
+    }
+  }
+
+  function endSelection() {
+    setIsDragging(false)
+  }
+
+  function isSelectedDate(date) {
+    return isDateInRange(date, selectedRange.start, selectedRange.end)
   }
 
   if (loading) {
@@ -101,8 +144,21 @@ function App() {
         />
       )}
       stats={<StatsStrip stats={stats} />}
-      calendar={<CalendarGrid cells={calendarCells} />}
-      sidebar={<BookingSidebar bookings={activeBookings} />}
+      calendar={(
+        <CalendarGrid
+          cells={calendarCells}
+          isDateSelected={isSelectedDate}
+          onSelectionEnd={endSelection}
+          onSelectionMove={moveSelection}
+          onSelectionStart={startSelection}
+        />
+      )}
+      sidebar={(
+        <BookingSidebar
+          bookings={sidebarBookings}
+          selectedRange={selectedRange}
+        />
+      )}
     />
   )
 }

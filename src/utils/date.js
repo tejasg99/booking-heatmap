@@ -44,3 +44,11 @@ export function getDateKey(date) {
 
   return `${year}-${month}-${day}`
 }
+
+export function getNightsBetween(start, end) {
+  const startTime = normalizeDate(start).getTime()
+  const endTime = normalizeDate(end).getTime()
+  const millisecondsPerDay = 1000 * 60 * 60 * 24
+
+  return Math.max(0, Math.round((endTime - startTime) / millisecondsPerDay))
+}

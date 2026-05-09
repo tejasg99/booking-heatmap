@@ -1,15 +1,11 @@
+import { getOccupancyLegend } from '../../utils/occupancy'
+
 const monthFormatter = new Intl.DateTimeFormat('en', {
   month: 'long',
   year: 'numeric',
 })
 
-const legendItems = [
-  { label: '0-2', className: 'bg-emerald-100' },
-  { label: '3-4', className: 'bg-yellow-100' },
-  { label: '5-6', className: 'bg-amber-200' },
-  { label: '7-8', className: 'bg-orange-200' },
-  { label: '9-10', className: 'bg-rose-200' },
-]
+const legendItems = getOccupancyLegend()
 
 export function Header({ currentDate, onNextMonth, onPrevMonth, onToday }) {
   return (
@@ -27,7 +23,7 @@ export function Header({ currentDate, onNextMonth, onPrevMonth, onToday }) {
         <div className="flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-xl">
           {legendItems.map((item) => (
             <div className="flex items-center gap-1.5" key={item.label}>
-              <span className={`h-2.5 w-2.5 rounded-full ${item.className}`} />
+              <span className={`h-2.5 w-2.5 rounded-full ${item.swatch}`} />
               <span className="text-xs font-medium text-[#414755]">{item.label}</span>
             </div>
           ))}

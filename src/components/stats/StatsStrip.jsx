@@ -4,7 +4,7 @@ const statFormatter = new Intl.NumberFormat('en-IN')
 
 export function StatsStrip({ stats }) {
   const highestDayLabel = stats.highestOccupancyDay
-    ? `${getDateKey(stats.highestOccupancyDay.date)} · ${stats.highestOccupancyDay.occupancy.occupiedRooms} rooms`
+    ? `${getDateKey(stats.highestOccupancyDay.date)} - ${stats.highestOccupancyDay.occupancy.occupiedRooms} rooms`
     : 'No data'
 
   const statsItems = [

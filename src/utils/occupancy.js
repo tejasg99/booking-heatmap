@@ -4,6 +4,39 @@ export const TOTAL_ROOMS = 10
 
 const INACTIVE_BOOKING_STATUSES = new Set(['cancelled'])
 
+const occupancyColorMap = {
+  empty: {
+    label: '0-2',
+    cell: 'border-emerald-100 bg-emerald-50 text-emerald-900',
+    swatch: 'bg-emerald-100',
+  },
+  low: {
+    label: '0-2',
+    cell: 'border-emerald-100 bg-emerald-50 text-emerald-900',
+    swatch: 'bg-emerald-100',
+  },
+  medium: {
+    label: '3-4',
+    cell: 'border-yellow-100 bg-yellow-50 text-yellow-900',
+    swatch: 'bg-yellow-100',
+  },
+  amber: {
+    label: '5-6',
+    cell: 'border-amber-200 bg-amber-100 text-amber-950',
+    swatch: 'bg-amber-200',
+  },
+  high: {
+    label: '7-8',
+    cell: 'border-orange-200 bg-orange-100 text-orange-950',
+    swatch: 'bg-orange-200',
+  },
+  full: {
+    label: '9-10',
+    cell: 'border-rose-200 bg-rose-100 text-rose-950',
+    swatch: 'bg-rose-200',
+  },
+}
+
 export function isBookingActive(booking) {
   return !INACTIVE_BOOKING_STATUSES.has(booking.status)
 }
@@ -73,6 +106,14 @@ export function getOccupancyLevel(occupiedRooms, totalRooms = TOTAL_ROOMS) {
   if (ratio <= 0.6) return 'amber'
   if (ratio <= 0.8) return 'high'
   return 'full'
+}
+
+export function getOccupancyColor(occupiedRooms, totalRooms = TOTAL_ROOMS) {
+  return occupancyColorMap[getOccupancyLevel(occupiedRooms, totalRooms)]
+}
+
+export function getOccupancyLegend() {
+  return ['empty', 'medium', 'amber', 'high', 'full'].map((level) => occupancyColorMap[level])
 }
 
 export function calculateDashboardStats(bookings, calendarCells, totalRooms = TOTAL_ROOMS) {
