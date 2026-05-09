@@ -23,7 +23,7 @@ export function Header({ currentDate, onNextMonth, onPrevMonth, onToday }) {
         <div className="flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-xl">
           {legendItems.map((item) => (
             <div className="flex items-center gap-1.5" key={item.label}>
-              <span className={`h-2.5 w-2.5 rounded-full ${item.swatch}`} />
+              <span className={`h-3 w-3 rounded-full shadow-sm ${item.swatch}`} />
               <span className="text-xs font-medium text-[#414755]">{item.label}</span>
             </div>
           ))}

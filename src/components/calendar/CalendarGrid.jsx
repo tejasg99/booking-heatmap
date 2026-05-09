@@ -4,6 +4,7 @@ import { WeekdayHeader } from './WeekdayHeader'
 export function CalendarGrid({
   cells,
   isDateSelected,
+  isFiltering,
   onSelectionStart,
   onSelectionMove,
   onSelectionEnd,
@@ -14,6 +15,11 @@ export function CalendarGrid({
       onMouseLeave={onSelectionEnd}
       onMouseUp={onSelectionEnd}
     >
+      {isFiltering && (
+        <div className="mb-4 rounded-xl border border-[#d8e2ff] bg-[#f1f3fe] px-4 py-3 text-sm font-medium text-[#414755]">
+          Calendar reflects the active room/status filters.
+        </div>
+      )}
       <WeekdayHeader />
       <div className="mt-3 grid grid-cols-7 gap-3">
         {cells.map((cell) => (

@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useReducer } from 'react'
 import { CalendarGrid } from './components/calendar/CalendarGrid'
+import { FilterBar } from './components/filters/FilterBar'
 import { DashboardLayout } from './components/layout/DashboardLayout'
 import { Header } from './components/layout/Header'
+import { LoadingPanel } from './components/layout/LoadingPanel'
 import { BookingSidebar } from './components/sidebar/BookingSidebar'
 import { StatsStrip } from './components/stats/StatsStrip'
 import { useBookings } from './hooks/useBookings'
@@ -15,30 +17,140 @@ import {
 
 const initialCalendarDate = new Date(2026, 0, 1)
 
+const initialDashboardState = {
+  currentDate: initialCalendarDate,
+  selectionStart: null,
+  selectionEnd: null,
+  isDragging: false,
+  filters: {
+    roomNumber: 'all',
+    status: 'all',
+  },
+}
+
+function dashboardReducer(state, action) {
+  switch (action.type) {
+    case 'next-month':
+      return {
+        ...state,
+        currentDate: new Date(
+          state.currentDate.getFullYear(),
+          state.currentDate.getMonth() + 1,
+          1,
+        ),
+      }
+    case 'previous-month':
+      return {
+        ...state,
+        currentDate: new Date(
+          state.currentDate.getFullYear(),
+          state.currentDate.getMonth() - 1,
+          1,
+        ),
+      }
+    case 'today':
+      return {
+        ...state,
+        currentDate: new Date(),
+      }
+    case 'selection-start':
+      return {
+        ...state,
+        selectionStart: action.date,
+        selectionEnd: action.date,
+        isDragging: true,
+      }
+    case 'selection-move':
+      if (!state.isDragging) return state
+
+      return {
+        ...state,
+        selectionEnd: action.date,
+      }
+    case 'selection-end':
+      return {
+        ...state,
+        isDragging: false,
+      }
+    case 'selection-clear':
+      return {
+        ...state,
+        selectionStart: null,
+        selectionEnd: null,
+        isDragging: false,
+      }
+    case 'filter-room':
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          roomNumber: action.roomNumber,
+        },
+      }
+    case 'filter-status':
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          status: action.status,
+        },
+      }
+    default:
+      return state
+  }
+}
+
+function applyBookingFilters(bookings, filters) {
+  return bookings.filter((booking) => {
+    const matchesRoom = filters.roomNumber === 'all'
+      || booking.roomNumber === filters.roomNumber
+    const matchesStatus = filters.status === 'all'
+      || booking.status === filters.status
+
+    return matchesRoom && matchesStatus
+  })
+}
+
 function App() {
   const { bookings, loading, error } = useBookings()
-  const [currentDate, setCurrentDate] = useState(initialCalendarDate)
-  const [selectionStart, setSelectionStart] = useState(null)
-  const [selectionEnd, setSelectionEnd] = useState(null)
-  const [isDragging, setIsDragging] = useState(false)
+  const [dashboardState, dispatch] = useReducer(
+    dashboardReducer,
+    initialDashboardState,
+  )
+  const {
+    currentDate,
+    selectionStart,
+    selectionEnd,
+    filters,
+  } = dashboardState
+
+  const roomOptions = useMemo(
+    () => Array.from(new Set(bookings.map((booking) => booking.roomNumber))).sort(),
+    [bookings],
+  )
+
+  const filteredBookings = useMemo(
+    () => applyBookingFilters(bookings, filters),
+    [bookings, filters],
+  )
 
   const calendarCells = useMemo(
     () => generateCalendarGrid(
       currentDate.getFullYear(),
       currentDate.getMonth(),
-      bookings,
+      filteredBookings,
     ),
-    [bookings, currentDate],
+    [filteredBookings, currentDate],
   )
 
   const activeBookings = useMemo(
-    () => bookings.filter(isBookingActive),
-    [bookings],
+    () => filteredBookings.filter(isBookingActive),
+    [filteredBookings],
   )
 
   const stats = useMemo(
-    () => calculateDashboardStats(bookings, calendarCells),
-    [bookings, calendarCells],
+    () => calculateDashboardStats(filteredBookings, calendarCells),
+    [filteredBookings, calendarCells],
   )
 
   const selectedRange = useMemo(
@@ -56,32 +168,31 @@ function App() {
     )
   }, [activeBookings, selectedRange])
 
+  const isFiltered = filters.roomNumber !== 'all' || filters.status !== 'all'
+  const hasSelection = Boolean(selectedRange.start && selectedRange.end)
+
   function goToNextMonth() {
-    setCurrentDate((date) => new Date(date.getFullYear(), date.getMonth() + 1, 1))
+    dispatch({ type: 'next-month' })
   }
 
   function goToPrevMonth() {
-    setCurrentDate((date) => new Date(date.getFullYear(), date.getMonth() - 1, 1))
+    dispatch({ type: 'previous-month' })
   }
 
   function goToToday() {
-    setCurrentDate(new Date())
+    dispatch({ type: 'today' })
   }
 
   function startSelection(date) {
-    setSelectionStart(date)
-    setSelectionEnd(date)
-    setIsDragging(true)
+    dispatch({ type: 'selection-start', date })
   }
 
   function moveSelection(date) {
-    if (isDragging) {
-      setSelectionEnd(date)
-    }
+    dispatch({ type: 'selection-move', date })
   }
 
   function endSelection() {
-    setIsDragging(false)
+    dispatch({ type: 'selection-end' })
   }
 
   function isSelectedDate(date) {
@@ -100,11 +211,8 @@ function App() {
           />
         )}
         stats={null}
-        calendar={(
-          <section className="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.05)]">
-            <p className="text-sm text-[#414755]">Loading bookings from public data...</p>
-          </section>
-        )}
+        filters={null}
+        calendar={<LoadingPanel />}
         sidebar={null}
       />
     )
@@ -122,6 +230,7 @@ function App() {
           />
         )}
         stats={null}
+        filters={null}
         calendar={(
           <section className="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-900 shadow-sm">
             <p className="font-semibold">Could not load bookings</p>
@@ -144,9 +253,20 @@ function App() {
         />
       )}
       stats={<StatsStrip stats={stats} />}
+      filters={(
+        <FilterBar
+          filters={filters}
+          hasSelection={hasSelection}
+          onClearSelection={() => dispatch({ type: 'selection-clear' })}
+          onRoomChange={(roomNumber) => dispatch({ type: 'filter-room', roomNumber })}
+          onStatusChange={(status) => dispatch({ type: 'filter-status', status })}
+          rooms={roomOptions}
+        />
+      )}
       calendar={(
         <CalendarGrid
           cells={calendarCells}
+          isFiltering={isFiltered}
           isDateSelected={isSelectedDate}
           onSelectionEnd={endSelection}
           onSelectionMove={moveSelection}
@@ -156,6 +276,7 @@ function App() {
       sidebar={(
         <BookingSidebar
           bookings={sidebarBookings}
+          isFiltered={isFiltered}
           selectedRange={selectedRange}
         />
       )}

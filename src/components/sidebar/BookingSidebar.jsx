@@ -16,7 +16,7 @@ function getRangeTitle(selectedRange) {
   return `${start} to ${end}`
 }
 
-export function BookingSidebar({ bookings, selectedRange }) {
+export function BookingSidebar({ bookings, selectedRange, isFiltered }) {
   const title = getRangeTitle(selectedRange)
 
   return (
@@ -25,6 +25,9 @@ export function BookingSidebar({ bookings, selectedRange }) {
         <div>
           <p className="text-xs font-semibold uppercase text-[#717786]">Booking Sidebar</p>
           <h2 className="mt-1 text-xl font-semibold">{title}</h2>
+          {isFiltered && (
+            <p className="mt-1 text-xs text-[#717786]">Filtered result set</p>
+          )}
         </div>
         <span className="rounded-full bg-[#ecedf9] px-3 py-1 text-xs font-semibold text-[#414755]">
           {bookings.length}

@@ -1,16 +1,52 @@
-# React + Vite
+# Hotel Occupancy Heatmap Calendar
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A desktop-first React dashboard for visualizing hotel room occupancy across a monthly calendar. Bookings are loaded client-side from `public/bookings.json`. Built as a part of Guestara assignment.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- 6 by 7 calendar grid with previous and next month overflow days
+- Vibrant occupancy heatmap from green to yellow, orange, and red
+- Checkout-exclusive booking logic, so checkout day is not counted as occupied
+- Cancelled bookings excluded from occupancy calculations
+- Month navigation with previous, next, and Today actions
+- Drag-to-select date ranges, including backward selection and overflow days
+- Booking sidebar filtered by the selected range
+- Room and status filters
+- Stats strip with bookings, occupancy, peak day, room nights, and revenue
+- Loading skeletons, empty states, and error handling
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React
+- Vite
+- Tailwind CSS
+- Native JavaScript Date API
 
-## Expanding the ESLint configuration
+## Setup
+1. Clone the repository
+```bash
+git clone https://github.com/tejasg99/booking-heatmap.git
+cd booking-heatmap
+```
+2. Install dependencies
+```bash
+npm install
+```
+3. Run the development server
+```bash
+npm run dev
+```
+4. Server should be running on http://localhost:5173
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Architecture
+
+- `src/hooks/useBookings.js` fetches and validates `bookings.json`.
+- `src/utils/date.js` contains date normalization and day math helpers.
+- `src/utils/calendar.js` generates the fixed 42-cell monthly grid.
+- `src/utils/occupancy.js` handles booking activity, occupancy, heatmap colors, and dashboard stats.
+- `src/utils/selection.js` handles selected date ranges and booking overlap checks.
+- `src/components/calendar` renders the weekday header, grid, and cells.
+- `src/components/layout` contains the dashboard shell, header, and loading panel.
+- `src/components/stats` renders dashboard metrics.
+- `src/components/filters` renders room and status filters.
+- `src/components/sidebar` renders selected-range booking details.

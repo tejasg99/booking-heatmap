@@ -7,33 +7,39 @@ const INACTIVE_BOOKING_STATUSES = new Set(['cancelled'])
 const occupancyColorMap = {
   empty: {
     label: '0-2',
-    cell: 'border-emerald-100 bg-emerald-50 text-emerald-900',
-    swatch: 'bg-emerald-100',
+    cell: 'border-[#d6f2cd] bg-[radial-gradient(circle_at_30%_20%,#f5fff0_0%,#dff5d6_58%,#caedbf_100%)] text-[#14351c]',
+    swatch: 'bg-[#42c967]',
+    meter: 'bg-[#2fb956]',
   },
   low: {
     label: '0-2',
-    cell: 'border-emerald-100 bg-emerald-50 text-emerald-900',
-    swatch: 'bg-emerald-100',
+    cell: 'border-[#d6f2cd] bg-[radial-gradient(circle_at_30%_20%,#f5fff0_0%,#dff5d6_58%,#caedbf_100%)] text-[#14351c]',
+    swatch: 'bg-[#42c967]',
+    meter: 'bg-[#2fb956]',
   },
   medium: {
     label: '3-4',
-    cell: 'border-yellow-100 bg-yellow-50 text-yellow-900',
-    swatch: 'bg-yellow-100',
+    cell: 'border-[#eaf3a6] bg-[radial-gradient(circle_at_30%_20%,#faffc8_0%,#edf59b_58%,#ddeb75_100%)] text-[#243714]',
+    swatch: 'bg-[#dce85a]',
+    meter: 'bg-[#89b92a]',
   },
   amber: {
     label: '5-6',
-    cell: 'border-amber-200 bg-amber-100 text-amber-950',
-    swatch: 'bg-amber-200',
+    cell: 'border-[#ffe285] bg-[radial-gradient(circle_at_30%_20%,#fff3a9_0%,#ffe173_54%,#ffd04e_100%)] text-[#4a3500]',
+    swatch: 'bg-[#ffc83f]',
+    meter: 'bg-[#d99300]',
   },
   high: {
     label: '7-8',
-    cell: 'border-orange-200 bg-orange-100 text-orange-950',
-    swatch: 'bg-orange-200',
+    cell: 'border-[#ffc074] bg-[radial-gradient(circle_at_30%_20%,#ffd782_0%,#ffb955_54%,#ff9948_100%)] text-[#4d2400]',
+    swatch: 'bg-[#ffad45]',
+    meter: 'bg-[#ef6c18]',
   },
   full: {
     label: '9-10',
-    cell: 'border-rose-200 bg-rose-100 text-rose-950',
-    swatch: 'bg-rose-200',
+    cell: 'border-[#ff7b66] bg-[radial-gradient(circle_at_30%_20%,#ff8e63_0%,#ff674d_52%,#ff3838_100%)] text-white',
+    swatch: 'bg-[#ff453f]',
+    meter: 'bg-white',
   },
 }
 
@@ -119,6 +125,10 @@ export function getOccupancyLegend() {
 export function calculateDashboardStats(bookings, calendarCells, totalRooms = TOTAL_ROOMS) {
   const activeBookings = bookings.filter(isBookingActive)
   const currentMonthCells = calendarCells.filter((cell) => cell.currentMonth)
+  const revenue = activeBookings.reduce(
+    (total, booking) => total + (Number(booking.totalAmount) || 0),
+    0,
+  )
   const roomNightsAvailable = currentMonthCells.length * totalRooms
   const occupiedRoomNights = currentMonthCells.reduce(
     (total, cell) => total + cell.occupancy.occupiedRooms,
@@ -140,5 +150,6 @@ export function calculateDashboardStats(bookings, calendarCells, totalRooms = TO
     averageOccupancy,
     highestOccupancyDay,
     occupiedRoomNights,
+    revenue,
   }
 }
